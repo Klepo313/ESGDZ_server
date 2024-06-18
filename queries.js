@@ -80,7 +80,7 @@ const getUpitniciForUser = async (req, res) => {
 const getUpitnik = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = 'SELECT * FROM edz_struktura WHERE evu_sif = $1';
+    const query = 'SELECT * FROM edz_struktura WHERE evu_sif = $1 ORDER BY rbr';
     const result = await client.query(query, [req.params.evu_sif]);
 
     const rows = result.rows;
