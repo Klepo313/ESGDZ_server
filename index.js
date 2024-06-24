@@ -39,13 +39,18 @@ app.get('/group/:ess_id', pool.getGroupsData);
 app.get('/questions/:p_ezu_id/:p_ess_id', pool.getQuestionsForGroup);
 app.get('/odg/:p_ezu_id', pool.getAnswersForUpitnik);
 app.get('/save-answer', (req, res) => {
-    const { p_eou_id, p_vrijednost, p_kor_id } = req.query;
+    let { p_eou_id, p_vrijednost, p_kor_id } = req.query;
 
     console.log(p_eou_id, p_vrijednost, p_kor_id);
 
-    if (!p_eou_id || !p_vrijednost || !p_kor_id) {
-        return res.status(400).json({ error: 'Sva polja su obavezna' });
+    if (!p_eou_id || !p_kor_id) {
+        return res.status(400).json({ error: 'p_eou_id i p_kor_id su obavezna polja' });
     }
+
+    if (p_vrijednost === undefined) {
+        p_vrijednost = null;
+    }
+
     if (!Number.isInteger(parseInt(p_eou_id)) || !Number.isInteger(parseInt(p_kor_id))) {
         return res.status(400).json({ error: 'p_eou_id i p_kor_id moraju biti brojevi' });
     } else {
@@ -63,6 +68,7 @@ app.get('/save-answer', (req, res) => {
         }
     }
 });
+
 app.get('/create-upitnik', (req, res) => {
     const { p_kor_id, p_evu_sif } = req.query;
 
