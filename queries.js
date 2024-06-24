@@ -156,6 +156,7 @@ const getQuestionsForGroup = async (req, res) => {
     and ept_id = eou_ept_id 
     and ezu_id = $1 
     and ept_ess_id = $2 
+    and fn_prikazi_pitanje(eou_id) = 'D'
     order by ept_rbr
     `;
 
