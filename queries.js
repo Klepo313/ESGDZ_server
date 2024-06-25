@@ -239,6 +239,57 @@ const createNewUpitnik = async (p_kor_id, p_evu_sif, callback) => {
   }
 }
 
+const getTotalAnsweredQuestions = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const query = `SELECT sum(CASE WHEN fn_prikazi_pitanje(eou_id) = 'D' THEN 1
+                                    ELSE 0
+                                    END) uk_pitanja
+                        , sum(CASE WHEN eou_sadrzaj IS NOT NULL THEN 1
+                                    ELSE 0
+                                    end) uk_odgovoreno
+                      FROM esg_odg_upitnik eou 
+                        , esg_pitanja ep 
+                    WHERE ept_id = eou_ept_id 
+                      AND fn_prikazi_pitanje(eou_id) = 'D'
+                      AND eou_ezu_id = $1;`; // and eou_sadrzaj is not null 
+    const result = await client.query(query, [parseInt(req.params.p_ezu_id)]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving group data');
+  } finally {
+    client.release();
+  }
+}
+
+const getAnsweredQuestionsForGroup = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const query = `SELECT sum(CASE WHEN fn_prikazi_pitanje(eou_id) = 'D' THEN 1
+                                    ELSE 0
+                                    END) uk_pitanja
+                        , sum(CASE WHEN COALESCE(trim(eou_sadrzaj), '') = '' THEN 0
+                                    ELSE 1
+                                    end) uk_odgovoreno
+                      FROM esg_odg_upitnik eou 
+                        , esg_pitanja ep 
+                    WHERE ept_id = eou_ept_id 
+                      AND fn_prikazi_pitanje(eou_id) = 'D'
+                      AND eou_ezu_id = $1
+                      AND ept_ess_id = $2;`; // and eou_sadrzaj is not null 
+    const result = await client.query(query, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving group data');
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   pool,
   loginUser,
@@ -249,5 +300,7 @@ module.exports = {
   getQuestionsForGroup,
   getAnswersForUpitnik,
   saveAnswer,
-  createNewUpitnik
+  createNewUpitnik,
+  getTotalAnsweredQuestions,
+  getAnsweredQuestionsForGroup
 }

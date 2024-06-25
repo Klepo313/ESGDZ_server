@@ -38,6 +38,8 @@ app.get('/struktura/:evu_sif', pool.getUpitnik);
 app.get('/group/:ess_id', pool.getGroupsData);
 app.get('/questions/:p_ezu_id/:p_ess_id', pool.getQuestionsForGroup);
 app.get('/odg/:p_ezu_id', pool.getAnswersForUpitnik);
+app.get('/totalAnswered/:p_ezu_id', pool.getTotalAnsweredQuestions);
+app.get('/answeredPerGroup/:p_ezu_id/:p_ess_id', pool.getAnsweredQuestionsForGroup);
 app.get('/save-answer', (req, res) => {
     let { p_eou_id, p_vrijednost, p_kor_id } = req.query;
 
