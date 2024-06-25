@@ -101,18 +101,18 @@ const getUpitnik = async (req, res) => {
 
     // Drugi prolazak za organizaciju grupe/kategorija/podkategorija
     for (const row of rows) {
-      const { ess_id, ess_ess_id, ess_naziv, ukpitanja } = row;
+      const { ess_id, ess_ess_id, ess_naziv, ukpitanja, ukgrana } = row;
 
       if (!ess_ess_id) {
         // Ovo je grupa
-        const group = { id: ess_id, name: ess_naziv, questions: ukpitanja, children: [] };
+        const group = { id: ess_id, name: ess_naziv, questions: ukpitanja, nodes: ukgrana, children: [] };
         groups.push(group);
         groupMap[ess_id] = group;
       } else {
         // Kategorija ili podkategorija
         const parentGroup = groupMap[ess_ess_id];
         if (parentGroup) {
-          const item = { id: ess_id, name: ess_naziv, questions: ukpitanja, children: [] };
+          const item = { id: ess_id, name: ess_naziv, questions: ukpitanja, nodes: ukgrana, children: [] };
           parentGroup.children.push(item);
           groupMap[ess_id] = item;
         }
