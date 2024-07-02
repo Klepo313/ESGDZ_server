@@ -30,6 +30,7 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ success: false, message: 'Došlo je do greške prilikom prijave.' });
     }
 });
+app.post('/lock-upitnik/:p_ezu_id', pool.lockUpitnik);
 
 //app.get('/upitnici/:firmId', pool.getUpitniciForUser);
 app.get('/upitnici', pool.getVrsteUpitnika);
@@ -40,6 +41,8 @@ app.get('/questions/:p_ezu_id/:p_ess_id', pool.getQuestionsForGroup);
 app.get('/odg/:p_ezu_id', pool.getAnswersForUpitnik);
 app.get('/totalAnswered/:p_ezu_id', pool.getTotalAnsweredQuestions);
 app.get('/answeredPerGroup/:p_ezu_id/:p_ess_id', pool.getAnsweredQuestionsForGroup);
+app.get('/status/:p_ezu_id', pool.getStatusUpitnika);
+app.get('/check-answer/:p_eou_id', pool.checkIfAnswerIsAnswered);
 app.get('/save-answer', (req, res) => {
     let { p_eou_id, p_vrijednost, p_kor_id } = req.query;
 

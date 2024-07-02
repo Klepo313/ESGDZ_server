@@ -1,14 +1,17 @@
 const Pool = require('pg').Pool;
 
+require('dotenv').config();
+require('dotenv').config({ path: './sql-queries.env' });
+
 // Postavljanje sigurnih parametara za PostgreSQL Pool
-const pool = new Pool({
-  host: 'cornelius.db.elephantsql.com',
-  user: 'rwjrfavq',
-  database: 'rwjrfavq',
-  password: '32RW27yZLBMJ4walViHjKsH06lnUKRC7',
-  port: 5432,
-  // max: 20, // Povećajte max vrijednost prema potrebi
-});
+// const pool = new Pool({
+//   host: 'cornelius.db.elephantsql.com',
+//   user: 'rwjrfavq',
+//   database: 'rwjrfavq',
+//   password: '32RW27yZLBMJ4walViHjKsH06lnUKRC7',
+//   port: 5432,
+//   // max: 20, // Povećajte max vrijednost prema potrebi
+// });
 // const pool = new Pool({
 //   host: 'localhost',
 //   user: 'postgres',
@@ -19,6 +22,28 @@ const pool = new Pool({
 
 // pool.connect(); // Povezivanje s bazom podataka - nije potrebno jer pool automatski upravlja konekcijama
 
+const pool = new Pool({
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT,
+});
+
+// Test konekcije
+pool.connect((err, client, release) => {
+  if (err) {
+      return console.error('Error acquiring client', err.stack);
+  }
+  client.query('SELECT NOW()', (err, result) => {
+      release();
+      if (err) {
+          return console.error('Error executing query', err.stack);
+      }
+      console.log(result.rows);
+  });
+});
+
 async function loginUser(username, password) {
   const usernameRegex = /^[a-zA-Z]+$/; // Regularni izraz koji provjerava da li string sadrži samo slova
 
@@ -27,7 +52,7 @@ async function loginUser(username, password) {
   } else {
     const client = await pool.connect();
     try {
-      const query = 'SELECT eko_id, eko_par_id_za, eko_korime, eko_zaporka FROM esg_korisnici WHERE eko_korime = $1 AND eko_zaporka = $2 AND CURRENT_DATE BETWEEN eko_datod AND eko_datdo;';
+      const query = process.env.LOGIN_USER;
       const result = await client.query(query, [username, password]);
 
       if (result.rows.length === 0) {
@@ -52,7 +77,7 @@ async function loginUser(username, password) {
 const getVrsteUpitnika = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = 'select * from edz_struktura where ess_ess_id is null order by rbr';
+    const query = process.env.GET_VRSTE_UPITNIKA;
     const result = await client.query(query);
 
     res.json(result.rows);
@@ -66,7 +91,7 @@ const getVrsteUpitnika = async (req, res) => {
 const getUpitniciForUser = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = 'select ezu_id, evu_sif, evu_naziv, ezu_datum, ezu_ezp_id, ezu_par_id, ezu_kreirano, ezu_mijenjao, ezu_ess_id from esg_zag_upitnik, edz_struktura where ezu_kreirao = $1 and ezu_par_id = $2 and ess_id = ezu_ess_id order by ezu_kreirano desc';
+    const query = process.env.GET_UPITNICI_FOR_USER;
     const result = await client.query(query, [req.params.userName, parseInt(req.params.firmId)]);
 
     res.json(result.rows);
@@ -80,7 +105,7 @@ const getUpitniciForUser = async (req, res) => {
 const getUpitnik = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = 'SELECT * FROM edz_struktura WHERE evu_sif = $1 ORDER BY rbr';
+    const query = process.env.GET_UPITNIK;
     const result = await client.query(query, [req.params.evu_sif]);
 
     const rows = result.rows;
@@ -134,7 +159,7 @@ const getUpitnik = async (req, res) => {
 const getGroupsData = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = 'select ess_id, ess_ess_id, ess_vrsta, ess_naziv, razina, ukpitanja from edz_struktura where ess_ess_id = $1';
+    const query = process.env.GET_GROUPS_DATA;
     const result = await client.query(query, [req.params.ess_id]);
 
     res.json(result.rows);
@@ -149,16 +174,17 @@ const getGroupsData = async (req, res) => {
 const getQuestionsForGroup = async (req, res) => {
   const client = await pool.connect();
   try {
-    const questionsQuery = `
-    select eou_id, ept_id, ept_ess_id, ept_rbr, ept_pitanje, ept_vrstaodg, ept_jedmjer, ept_format, ept_opis, ept_uvjetovan, p.*, o.* 
-    from esg_zag_upitnik, esg_odg_upitnik o, esg_pitanja p 
-    where eou_ezu_id = ezu_id 
-    and ept_id = eou_ept_id 
-    and ezu_id = $1 
-    and ept_ess_id = $2 
-    and fn_prikazi_pitanje(eou_id) = 'D'
-    order by ept_rbr
-    `;
+    const questionsQuery = process.env.GET_QUESTIONS_FOR_GROUP;
+    // `
+    // select eou_id, ept_id, ept_ess_id, ept_rbr, ept_pitanje, ept_vrstaodg, ept_jedmjer, ept_format, ept_opis, ept_uvjetovan, p.*, o.* 
+    // from esg_zag_upitnik, esg_odg_upitnik o, esg_pitanja p 
+    // where eou_ezu_id = ezu_id 
+    // and ept_id = eou_ept_id 
+    // and ezu_id = $1 
+    // and ept_ess_id = $2 
+    // and fn_prikazi_pitanje(eou_id) = 'D'
+    // order by ept_rbr
+    // `;
 
     const questionsResult = await client.query(questionsQuery, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
 
@@ -166,12 +192,13 @@ const getQuestionsForGroup = async (req, res) => {
 
     for (let question of questions) {
       if (question.ept_vrstaodg === 'IZBOR' || question.ept_vrstaodg === 'IZBORVIS') {
-        const possibleAnswersQuery = `
-          SELECT eso_ept_id, eso_id, eso_odgovor
-          FROM esg_odgovori
-          WHERE eso_ept_id = $1
-          ORDER BY eso_id
-        `;
+        const possibleAnswersQuery = process.env.GET_POSSIBLE_ANSWERS;
+        // `
+        //   SELECT eso_ept_id, eso_id, eso_odgovor
+        //   FROM esg_odgovori
+        //   WHERE eso_ept_id = $1
+        //   ORDER BY eso_id
+        // `;
         const possibleAnswersResult = await client.query(possibleAnswersQuery, [question.ept_id]);
         question.possibleAnswers = possibleAnswersResult.rows;
       }
@@ -189,7 +216,7 @@ const getQuestionsForGroup = async (req, res) => {
 const getAnswersForUpitnik = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = 'SELECT * FROM esg_odg_upitnik WHERE eou_ezu_id = $1 ORDER BY eou_id'; // and eou_sadrzaj is not null 
+    const query = process.env.GET_ANSWERS_FOR_UPITNIK; // and eou_sadrzaj is not null 
     const result = await client.query(query, [parseInt(req.params.p_ezu_id)]);
 
     res.json(result.rows);
@@ -204,7 +231,7 @@ const getAnswersForUpitnik = async (req, res) => {
 const saveAnswer = async (p_eou_id, p_vrijednost, p_kor_id, callback) => {
   const client = await pool.connect();
   try {
-    const query = 'SELECT Fn_upisi_odgovor($1, $2, $3) AS rezultat';
+    const query = process.env.SAVE_ANSWER;
     const result = await client.query(query, [p_eou_id, p_vrijednost, p_kor_id]);
     if (result && result.rows && result.rows.length > 0) {
       callback(null, result.rows[0].rezultat);
@@ -223,7 +250,7 @@ const saveAnswer = async (p_eou_id, p_vrijednost, p_kor_id, callback) => {
 const createNewUpitnik = async (p_kor_id, p_evu_sif, callback) => {
   const client = await pool.connect();
   try {
-    const query = 'SELECT dodaj_upitnik($1, CURRENT_DATE, $2) AS dodano';
+    const query = process.env.CREATE_NEW_UPITNIK;
     const result = await client.query(query, [p_kor_id, p_evu_sif]);
     if (result && result.rows && result.rows.length > 0) {
       callback(null, result.rows[0].dodano);
@@ -242,17 +269,18 @@ const createNewUpitnik = async (p_kor_id, p_evu_sif, callback) => {
 const getTotalAnsweredQuestions = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = `SELECT sum(CASE WHEN fn_prikazi_pitanje(eou_id) = 'D' THEN 1
-                                    ELSE 0
-                                    END) uk_pitanja
-                        , sum(CASE WHEN eou_sadrzaj IS NOT NULL THEN 1
-                                    ELSE 0
-                                    end) uk_odgovoreno
-                      FROM esg_odg_upitnik eou 
-                        , esg_pitanja ep 
-                    WHERE ept_id = eou_ept_id 
-                      AND fn_prikazi_pitanje(eou_id) = 'D'
-                      AND eou_ezu_id = $1;`; // and eou_sadrzaj is not null 
+    const query = process.env.GET_TOTAL_ANSWERED_QUESTIONS;
+    // `SELECT sum(CASE WHEN fn_prikazi_pitanje(eou_id) = 'D' THEN 1
+    //                                 ELSE 0
+    //                                 END) uk_pitanja
+    //                     , sum(CASE WHEN eou_sadrzaj IS NOT NULL THEN 1
+    //                                 ELSE 0
+    //                                 end) uk_odgovoreno
+    //                   FROM esg_odg_upitnik eou 
+    //                     , esg_pitanja ep 
+    //                 WHERE ept_id = eou_ept_id 
+    //                   AND fn_prikazi_pitanje(eou_id) = 'D'
+    //                   AND eou_ezu_id = $1;`; // and eou_sadrzaj is not null 
     const result = await client.query(query, [parseInt(req.params.p_ezu_id)]);
 
     res.json(result.rows);
@@ -267,20 +295,60 @@ const getTotalAnsweredQuestions = async (req, res) => {
 const getAnsweredQuestionsForGroup = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = `SELECT sum(CASE WHEN fn_prikazi_pitanje(eou_id) = 'D' THEN 1
-                                    ELSE 0
-                                    END) uk_pitanja
-                        , sum(CASE WHEN COALESCE(trim(eou_sadrzaj), '') = '' THEN 0
-                                    ELSE 1
-                                    end) uk_odgovoreno
-                      FROM esg_odg_upitnik eou 
-                        , esg_pitanja ep 
-                    WHERE ept_id = eou_ept_id 
-                      AND fn_prikazi_pitanje(eou_id) = 'D'
-                      AND eou_ezu_id = $1
-                      AND ept_ess_id = $2;`; // and eou_sadrzaj is not null 
+    const query = process.env.GET_ANSWERED_QUESTIONS_FOR_GROUP;
+    // `SELECT sum(CASE WHEN fn_prikazi_pitanje(eou_id) = 'D' THEN 1
+    //                                 ELSE 0
+    //                                 END) uk_pitanja
+    //                     , sum(CASE WHEN COALESCE(trim(eou_sadrzaj), '') = '' THEN 0
+    //                                 ELSE 1
+    //                                 end) uk_odgovoreno
+    //                   FROM esg_odg_upitnik eou 
+    //                     , esg_pitanja ep 
+    //                 WHERE ept_id = eou_ept_id 
+    //                   AND fn_prikazi_pitanje(eou_id) = 'D'
+    //                   AND eou_ezu_id = $1
+    //                   AND ept_ess_id = $2;`; // and eou_sadrzaj is not null 
     const result = await client.query(query, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
 
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving group data');
+  } finally {
+    client.release();
+  }
+}
+
+const getStatusUpitnika = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const query = process.env.GET_STATUS_UPITNIKA;
+    const result = await client.query(query, [parseInt(req.params.p_ezu_id)]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving group data');
+  } finally {
+    client.release();
+  }
+}
+
+const lockUpitnik = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const query = process.env.LOCK_UPITNIK;
+    const result = await client.query(query, [parseInt(req.params.p_ezu_id)]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+const checkIfAnswerIsAnswered = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const query = process.env.CHECK_IF_ANSWER_IS_ANSWERED;
+    const result = await client.query(query, [parseInt(req.params.p_eou_id)]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -302,5 +370,8 @@ module.exports = {
   saveAnswer,
   createNewUpitnik,
   getTotalAnsweredQuestions,
-  getAnsweredQuestionsForGroup
+  getAnsweredQuestionsForGroup,
+  getStatusUpitnika,
+  lockUpitnik,
+  checkIfAnswerIsAnswered
 }
