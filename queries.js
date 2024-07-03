@@ -49,7 +49,7 @@ pool.connect((err, client, release) => {
   if (err) {
       return console.error('Error acquiring client', err.stack);
   }
-  client.query(`SELECT now()`, (err, result) => {
+  client.query(`SELECT Count(*) FROM edz_struktura es`, (err, result) => {
       release();
       if (err) {
           return console.error('Error executing query', err.stack);
@@ -91,7 +91,7 @@ async function loginUser(username, password) {
 const getVrsteUpitnika = async (req, res) => {
   const client = await pool.connect();
   try {
-    const query = process.env.GET_VRSTE_UPITNIKA;
+    const query = 'select * from edz_struktura where ess_ess_id is null order by rbr;';
     const result = await client.query(query);
 
     res.json(result.rows);
