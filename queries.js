@@ -342,7 +342,6 @@ const getAnsweredQuestionsForGroup = async (req, res) => {
 }
 
 const getStatusUpitnika = async (req, res) => {
-  
   try {
     const query = `SELECT ezu_status, CASE WHEN ezu_status = 0 THEN 'U pripremi' WHEN ezu_status = 1 THEN 'Zaključen' ELSE 'Nepoznato' END AS status_txt FROM esg_zag_upitnik ezu WHERE ezu_id = $1;`;
     const result = await pool.query(query, [parseInt(req.params.p_ezu_id)]);
@@ -354,15 +353,15 @@ const getStatusUpitnika = async (req, res) => {
 }
 
 const lockUpitnik = async (req, res) => {
-  
   try {
     const query = 'UPDATE esg_zag_upitnik SET ezu_status = 1 WHERE ezu_id = $1;';
     const result = await pool.query(query, [parseInt(req.params.p_ezu_id)]);
     res.json(result.rows);
   } catch (error) {
-    console.error(error);
+    console.error('Error locking upitnik:', error);
+    res.status(500).send('Internal Server Error');
   }
-}
+};
 
 const checkIfAnswerIsAnswered = async (req, res) => {
   
