@@ -6,6 +6,8 @@ const helmet = require("helmet")
 
 const port = 5000;
 
+app.use(pool.openConnection);
+app.use(pool.closeConnection);
 app.use(
     cors({
         origin:'*' // Omogućen pristup sa svih adresa
@@ -99,7 +101,6 @@ app.get('/create-upitnik', (req, res) => {
         }
     }
 });
-
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)
