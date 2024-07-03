@@ -22,12 +22,26 @@ require('dotenv').config({ path: './sql-queries.env' });
 
 // pool.connect(); // Povezivanje s bazom podataka - nije potrebno jer pool automatski upravlja konekcijama
 
+// const pool = new Pool({
+//   user: process.env.PGUSER,
+//   host: process.env.PGHOST,
+//   database: process.env.PGDATABASE,
+//   password: process.env.PGPASSWORD,
+//   port: process.env.PGPORT,
+// });
+
+// PGUSER='postgres.pwawzzjawyxoipwzynga'
+// PGPASSWORD='IzvorCetine123!?'
+// PGHOST='aws-0-eu-central-1.pooler.supabase.com'
+// PGPORT=6543
+// PGDATABASE='postgres'
+
 const pool = new Pool({
-  user: process.env.PGUSER,
-  host: process.env.PGHOST,
-  database: process.env.PGDATABASE,
-  password: process.env.PGPASSWORD,
-  port: process.env.PGPORT,
+  user: 'postgres.pwawzzjawyxoipwzynga',
+  host: 'aws-0-eu-central-1.pooler.supabase.com',
+  database: 'postgres',
+  password: 'IzvorCetine123!?',
+  port: 6543,
 });
 
 // Test konekcije
@@ -35,7 +49,7 @@ pool.connect((err, client, release) => {
   if (err) {
       return console.error('Error acquiring client', err.stack);
   }
-  client.query('SELECT NOW()', (err, result) => {
+  client.query(`SELECT now()`, (err, result) => {
       release();
       if (err) {
           return console.error('Error executing query', err.stack);
