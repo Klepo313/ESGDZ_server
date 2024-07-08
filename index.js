@@ -34,7 +34,6 @@ app.post('/login', async (req, res) => {
 });
 app.post('/lock-upitnik/:p_ezu_id', pool.lockUpitnik);
 
-//app.get('/upitnici/:firmId', pool.getUpitniciForUser);
 app.get('/upitnici', pool.getVrsteUpitnika);
 app.get('/upitnici/:userName/:firmId', pool.getUpitniciForUser);
 app.get('/struktura/:evu_sif', pool.getUpitnik);
@@ -45,6 +44,7 @@ app.get('/totalAnswered/:p_ezu_id', pool.getTotalAnsweredQuestions);
 app.get('/answeredPerGroup/:p_ezu_id/:p_ess_id', pool.getAnsweredQuestionsForGroup);
 app.get('/status/:p_ezu_id', pool.getStatusUpitnika);
 app.get('/check-answer/:p_eou_id', pool.checkIfAnswerIsAnswered);
+app.get('/ordered-ids', pool.getOrderedIDs);
 app.get('/save-answer', (req, res) => {
     let { p_eou_id, p_vrijednost, p_kor_id } = req.query;
 

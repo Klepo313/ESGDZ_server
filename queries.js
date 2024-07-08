@@ -364,7 +364,6 @@ const lockUpitnik = async (req, res) => {
 };
 
 const checkIfAnswerIsAnswered = async (req, res) => {
-  
   try {
     const query = `select case when ept_obvezan = 'N' then 1 when ept_obvezan = 'D' and coalesce(trim(eou_sadrzaj), '') = '' then 0 else 1 end as u_redu from esg_odg_upitnik, esg_pitanja where eou_ept_id = ept_id and eou_id = $1;`;
     const result = await pool.query(query, [parseInt(req.params.p_eou_id)]);
@@ -373,6 +372,17 @@ const checkIfAnswerIsAnswered = async (req, res) => {
     console.error(error);
     res.status(500).send('Error retrieving group data');
   } 
+}
+
+const getOrderedIDs = async (req, res) => {
+  try {
+    const query = `SELECT fn_next_grana(ess_id) ess_id_new FROM edz_struktura es1 WHERE es1.evu_sif = 'ESG' ORDER BY rbr;`
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving ordered IDs');
+  }
 }
 
 module.exports = {
@@ -392,5 +402,6 @@ module.exports = {
   getAnsweredQuestionsForGroup,
   getStatusUpitnika,
   lockUpitnik,
-  checkIfAnswerIsAnswered
+  checkIfAnswerIsAnswered,
+  getOrderedIDs,
 }
