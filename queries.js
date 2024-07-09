@@ -37,6 +37,14 @@ require('dotenv').config({ path: './sql-queries.env' });
 // PGDATABASE='postgres'
 
 const pool = new Pool({
+  user: 'postgres',
+  host: '10.100.1.73',
+  database: 'postgres',
+  password: 'u2ub40b52',
+  port: 5432,
+});
+
+const poolPublicDevelopment = new Pool({
   user: 'postgres.pwawzzjawyxoipwzynga',
   host: 'aws-0-eu-central-1.pooler.supabase.com',
   database: 'postgres',
