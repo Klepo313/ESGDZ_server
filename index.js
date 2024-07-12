@@ -47,9 +47,6 @@ app.get('/check-answer/:p_eou_id', pool.checkIfAnswerIsAnswered);
 app.get('/ordered-ids', pool.getOrderedIDs);
 app.get('/save-answer', (req, res) => {
     let { p_eou_id, p_vrijednost, p_kor_id } = req.query;
-
-    console.log(p_eou_id, p_vrijednost, p_kor_id);
-
     if (!p_eou_id || !p_kor_id) {
         return res.status(400).json({ error: 'p_eou_id i p_kor_id su obavezna polja' });
     }
@@ -78,8 +75,6 @@ app.get('/save-answer', (req, res) => {
 
 app.get('/create-upitnik', (req, res) => {
     const { p_kor_id, p_evu_sif } = req.query;
-
-    console.log(p_kor_id, p_evu_sif);
 
     if(!p_kor_id || !p_evu_sif) {
         return res.status(400).json({ error: 'Sva polja su obavezna' });
