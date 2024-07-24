@@ -92,7 +92,6 @@ poolPublicDevelopment.connect((err, pool, release) => {
       if (err) {
           return console.error('Error executing query', err.stack);
       }
-      console.log(result.rows);
   });
 });
 
