@@ -66,7 +66,7 @@ const poolPublicDevelopment = new Pool({
 
 const openConnection = async (req, res, next) => {
   try {
-    req.dbClient = await pool.connect();
+    req.dbClient = await poolPublicDevelopment.connect();
     next();
   } catch (error) {
     console.error('Error acquiring pool', error.stack);
@@ -83,11 +83,11 @@ const closeConnection = (req, res, next) => {
 
 
 // Test konekcije
-pool.connect((err, pool, release) => {
+poolPublicDevelopment.connect((err, pool, release) => {
   if (err) {
       return console.error('Error acquiring pool', err.stack);
   }
-  pool.query(`SELECT Count(*) FROM edz_struktura es`, (err, result) => {
+  poolPublicDevelopment.query(`SELECT Count(*) FROM edz_struktura es`, (err, result) => {
       release();
       if (err) {
           return console.error('Error executing query', err.stack);
@@ -105,7 +105,7 @@ async function loginUser(username, password) {
     
     try {
       const query = 'SELECT eko_id, eko_par_id_za, eko_korime, eko_zaporka FROM esg_korisnici WHERE eko_korime = $1 AND eko_zaporka = $2 AND CURRENT_DATE BETWEEN eko_datod AND eko_datdo;';
-      const result = await pool.query(query, [username, password]);
+      const result = await poolPublicDevelopment.query(query, [username, password]);
 
       if (result.rows.length === 0) {
         throw new Error('Korisnik nije pronađen.');
@@ -128,7 +128,7 @@ const getVrsteUpitnika = async (req, res) => {
   
   try {
     const query = 'select * from edz_struktura where ess_ess_id is null order by rbr;';
-    const result = await pool.query(query);
+    const result = await poolPublicDevelopment.query(query);
 
     res.json(result.rows);
   } catch (error) {
@@ -140,7 +140,7 @@ const getUpitniciForUser = async (req, res) => {
   
   try {
     const query = 'select ezu_id, evu_sif, evu_naziv, ezu_datum, ezu_ezp_id, ezu_par_id, ezu_kreirano, ezu_mijenjao, ezu_ess_id from esg_zag_upitnik, edz_struktura where ezu_kreirao = $1 and ezu_par_id = $2 and ess_id = ezu_ess_id order by ezu_kreirano desc;';
-    const result = await pool.query(query, [req.params.userName, parseInt(req.params.firmId)]);
+    const result = await poolPublicDevelopment.query(query, [req.params.userName, parseInt(req.params.firmId)]);
 
     res.json(result.rows);
   } catch (error) {
@@ -152,7 +152,7 @@ const getUpitnik = async (req, res) => {
   
   try {
     const query = 'SELECT * FROM edz_struktura WHERE evu_sif = $1 ORDER BY rbr;';
-    const result = await pool.query(query, [req.params.evu_sif]);
+    const result = await poolPublicDevelopment.query(query, [req.params.evu_sif]);
 
     const rows = result.rows;
 
@@ -204,7 +204,7 @@ const getGroupsData = async (req, res) => {
   
   try {
     const query = 'select ess_id, ess_ess_id, ess_vrsta, ess_naziv, razina, ukpitanja from edz_struktura where ess_ess_id = $1;';
-    const result = await pool.query(query, [req.params.ess_id]);
+    const result = await poolPublicDevelopment.query(query, [req.params.ess_id]);
 
     res.json(result.rows);
   } catch (error) {
@@ -228,7 +228,7 @@ const getQuestionsForGroup = async (req, res) => {
     // order by ept_rbr
     // `;
 
-    const questionsResult = await pool.query(questionsQuery, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
+    const questionsResult = await poolPublicDevelopment.query(questionsQuery, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
 
     const questions = questionsResult.rows;
 
@@ -241,7 +241,7 @@ const getQuestionsForGroup = async (req, res) => {
         //   WHERE eso_ept_id = $1
         //   ORDER BY eso_id
         // `;
-        const possibleAnswersResult = await pool.query(possibleAnswersQuery, [question.ept_id]);
+        const possibleAnswersResult = await poolPublicDevelopment.query(possibleAnswersQuery, [question.ept_id]);
         question.possibleAnswers = possibleAnswersResult.rows;
       }
     }
@@ -257,7 +257,7 @@ const getAnswersForUpitnik = async (req, res) => {
   
   try {
     const query = 'SELECT * FROM esg_odg_upitnik WHERE eou_ezu_id = $1 ORDER BY eou_id;'; // and eou_sadrzaj is not null 
-    const result = await pool.query(query, [parseInt(req.params.p_ezu_id)]);
+    const result = await poolPublicDevelopment.query(query, [parseInt(req.params.p_ezu_id)]);
 
     res.json(result.rows);
   } catch (error) {
@@ -270,7 +270,7 @@ const saveAnswer = async (p_eou_id, p_vrijednost, p_kor_id, callback) => {
   
   try {
     const query = 'SELECT Fn_upisi_odgovor($1, $2, $3) AS rezultat;';
-    const result = await pool.query(query, [p_eou_id, p_vrijednost, p_kor_id]);
+    const result = await poolPublicDevelopment.query(query, [p_eou_id, p_vrijednost, p_kor_id]);
     if (result && result.rows && result.rows.length > 0) {
       callback(null, result.rows[0].rezultat);
     } else {
@@ -287,7 +287,7 @@ const createNewUpitnik = async (p_kor_id, p_evu_sif, callback) => {
   
   try {
     const query = 'SELECT dodaj_upitnik($1, CURRENT_DATE, $2) AS dodano;';
-    const result = await pool.query(query, [p_kor_id, p_evu_sif]);
+    const result = await poolPublicDevelopment.query(query, [p_kor_id, p_evu_sif]);
     if (result && result.rows && result.rows.length > 0) {
       callback(null, result.rows[0].dodano);
     } else {
@@ -315,7 +315,7 @@ const getTotalAnsweredQuestions = async (req, res) => {
     //                 WHERE ept_id = eou_ept_id 
     //                   AND fn_prikazi_pitanje(eou_id) = 'D'
     //                   AND eou_ezu_id = $1;`; // and eou_sadrzaj is not null 
-    const result = await pool.query(query, [parseInt(req.params.p_ezu_id)]);
+    const result = await poolPublicDevelopment.query(query, [parseInt(req.params.p_ezu_id)]);
 
     res.json(result.rows);
   } catch (error) {
@@ -340,7 +340,7 @@ const getAnsweredQuestionsForGroup = async (req, res) => {
                       AND fn_prikazi_pitanje(eou_id) = 'D'
                       AND eou_ezu_id = $1
                       AND ept_ess_id = $2;`; // and eou_sadrzaj is not null 
-    const result = await pool.query(query, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
+    const result = await poolPublicDevelopment.query(query, [parseInt(req.params.p_ezu_id), parseInt(req.params.p_ess_id)]);
 
     res.json(result.rows);
   } catch (error) {
@@ -352,7 +352,7 @@ const getAnsweredQuestionsForGroup = async (req, res) => {
 const getStatusUpitnika = async (req, res) => {
   try {
     const query = `SELECT ezu_status, CASE WHEN ezu_status = 0 THEN 'U pripremi' WHEN ezu_status = 1 THEN 'Zaključen' ELSE 'Nepoznato' END AS status_txt FROM esg_zag_upitnik ezu WHERE ezu_id = $1;`;
-    const result = await pool.query(query, [parseInt(req.params.p_ezu_id)]);
+    const result = await poolPublicDevelopment.query(query, [parseInt(req.params.p_ezu_id)]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -363,7 +363,7 @@ const getStatusUpitnika = async (req, res) => {
 const lockUpitnik = async (req, res) => {
   try {
     const query = 'UPDATE esg_zag_upitnik SET ezu_status = 1 WHERE ezu_id = $1;';
-    const result = await pool.query(query, [parseInt(req.params.p_ezu_id)]);
+    const result = await poolPublicDevelopment.query(query, [parseInt(req.params.p_ezu_id)]);
     res.json(result.rows);
   } catch (error) {
     console.error('Error locking upitnik:', error);
@@ -374,7 +374,7 @@ const lockUpitnik = async (req, res) => {
 const checkIfAnswerIsAnswered = async (req, res) => {
   try {
     const query = `select case when ept_obvezan = 'N' then 1 when ept_obvezan = 'D' and coalesce(trim(eou_sadrzaj), '') = '' then 0 else 1 end as u_redu from esg_odg_upitnik, esg_pitanja where eou_ept_id = ept_id and eou_id = $1;`;
-    const result = await pool.query(query, [parseInt(req.params.p_eou_id)]);
+    const result = await poolPublicDevelopment.query(query, [parseInt(req.params.p_eou_id)]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -385,7 +385,7 @@ const checkIfAnswerIsAnswered = async (req, res) => {
 const getOrderedIDs = async (req, res) => {
   try {
     const query = `SELECT fn_next_grana(ess_id) ess_id_new FROM edz_struktura es1 WHERE es1.evu_sif = 'ESG' ORDER BY rbr;`
-    const result = await pool.query(query);
+    const result = await poolPublicDevelopment.query(query);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -394,7 +394,7 @@ const getOrderedIDs = async (req, res) => {
 }
 
 module.exports = {
-  pool,
+  poolPublicDevelopment,
   openConnection,
   closeConnection,
   loginUser,

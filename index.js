@@ -3,21 +3,122 @@ const app = express();
 const cors = require('cors');
 const pool = require('./queries');
 const helmet = require("helmet")
+const cookieParser = require('cookie-parser');
 
 const port = 5000;
 
 app.use(pool.openConnection);
 app.use(pool.closeConnection);
-app.use(
-    cors({
-        origin:'*' // Omogućen pristup sa svih adresa
-    })
-) 
+app.use(cors({
+    origin: 'http://localhost:3000', // ! Zamijeni s front-end domenom (app.agram...)
+    credentials: true
+}));
+
+// HttpOnly Cookies
+app.use(cookieParser());
 app.use(express.json()); // req.body
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 
-// Ruta za prijavu
+
+app.post('/set-user-cookies', (req, res) => {
+    console.log('Primljeni podaci:', req.body);
+  
+    // Set all cookies in one response
+    res.cookie('eko_par_id_za', req.body.eko_par_id_za, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict'
+    });
+    res.cookie('eko_id', req.body.eko_id, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict'
+    });
+    res.cookie('eko_korime', req.body.eko_korime, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict'
+    });
+    res.sendStatus(200);
+});
+app.get('/get-user-cookies', (req, res) => {
+    const cookies = req.cookies || {};
+    console.log('Cookies:', cookies);
+    res.json({
+      eko_par_id_za: cookies.eko_par_id_za || null,
+      eko_id: cookies.eko_id || null,
+      eko_korime: cookies.eko_korime || null
+    });
+});
+app.post('/clear-user-cookies', (req, res) => {
+  res.clearCookie('eko_par_id_za');
+  res.clearCookie('eko_id');
+  res.clearCookie('eko_korime');
+  res.sendStatus(200);
+});
+
+
+app.post('/set-upitnik-cookies', (req, res) => {
+    res.cookie('evu_sif', req.body.evu_sif, {
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dana
+        secure: process.env.NODE_ENV === 'production', // Postavi secure ako je u produkciji
+        sameSite: 'Strict'
+    });
+    res.cookie('ezu_ess_id', req.body.ezu_ess_id, {
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
+    });
+    res.cookie('ezu_id', req.body.ezu_id, {
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
+    });
+    res.cookie('ezu_ezp_id', req.body.ezu_ezp_id, {
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
+    });
+    res.cookie('ezu_naziv', req.body.ezu_naziv, {
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
+    });
+    res.sendStatus(200);
+});
+
+app.get('/get-upitnik-cookies', (req, res) => {
+    const cookies = req.cookies || {};
+    res.json({
+        evu_sif: cookies.evu_sif || null,
+        ezu_ess_id: cookies.ezu_ess_id || null,
+        ezu_id: cookies.ezu_id || null,
+        ezu_ezp_id: cookies.ezu_ezp_id || null,
+        ezu_naziv: cookies.ezu_naziv || null,
+    });
+});
+
+app.post('/clear-upitnik-cookies', (req, res) => {
+    res.clearCookie('evu_sif');
+    res.clearCookie('ezu_ess_id');
+    res.clearCookie('ezu_id');
+    res.clearCookie('ezu_ezp_id');
+    res.clearCookie('ezu_naziv');
+    res.sendStatus(200);
+});
+
+
+
+
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
