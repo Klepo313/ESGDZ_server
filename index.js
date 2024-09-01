@@ -23,25 +23,25 @@ app.use(helmet());
 
 app.post('/set-user-cookies', (req, res) => {
     console.log('Primljeni podaci:', req.body);
-  
+
     // Set all cookies in one response
     res.cookie('eko_par_id_za', req.body.eko_par_id_za, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict'
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
     });
     res.cookie('eko_id', req.body.eko_id, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict'
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
     });
     res.cookie('eko_korime', req.body.eko_korime, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict'
+        httpOnly: true,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
     });
     res.sendStatus(200);
 });
@@ -49,16 +49,28 @@ app.get('/get-user-cookies', (req, res) => {
     const cookies = req.cookies || {};
     console.log('Cookies:', cookies);
     res.json({
-      eko_par_id_za: cookies.eko_par_id_za || null,
-      eko_id: cookies.eko_id || null,
-      eko_korime: cookies.eko_korime || null
+        eko_par_id_za: cookies.eko_par_id_za || null,
+        eko_id: cookies.eko_id || null,
+        eko_korime: cookies.eko_korime || null
     });
 });
+app.get('/check-user-cookies', (req, res) => {
+    const eko_par_id_za = req.cookies.eko_par_id_za;
+    const eko_id = req.cookies.eko_id;
+    const eko_korime = req.cookies.eko_korime;
+
+    res.json({
+        eko_par_id_za: !!eko_par_id_za,
+        eko_id: !!eko_id,
+        eko_korime: !!eko_korime
+    });
+});
+
 app.post('/clear-user-cookies', (req, res) => {
-  res.clearCookie('eko_par_id_za');
-  res.clearCookie('eko_id');
-  res.clearCookie('eko_korime');
-  res.sendStatus(200);
+    res.clearCookie('eko_par_id_za');
+    res.clearCookie('eko_id');
+    res.clearCookie('eko_korime');
+    res.sendStatus(200);
 });
 
 
@@ -104,6 +116,22 @@ app.get('/get-upitnik-cookies', (req, res) => {
         ezu_id: cookies.ezu_id || null,
         ezu_ezp_id: cookies.ezu_ezp_id || null,
         ezu_naziv: cookies.ezu_naziv || null,
+    });
+});
+
+app.get('/check-upitnik-cookies', (req, res) => {
+    const evu_sif = req.cookies.evu_sif;
+    const ezu_ess_id = req.cookies.ezu_ess_id;
+    const ezu_id = req.cookies.ezu_id;
+    const ezu_ezp_id = req.cookies.ezu_ezp_id;
+    const ezu_naziv = req.cookies.ezu_naziv;
+
+    res.json({
+        evu_sif: !!evu_sif,
+        ezu_ess_id: !!ezu_ess_id,
+        ezu_id: !!ezu_id,
+        ezu_ezp_id: !!ezu_ezp_id,
+        ezu_naziv: !!ezu_naziv
     });
 });
 
@@ -177,7 +205,7 @@ app.get('/save-answer', (req, res) => {
 app.get('/create-upitnik', (req, res) => {
     const { p_kor_id, p_evu_sif } = req.query;
 
-    if(!p_kor_id || !p_evu_sif) {
+    if (!p_kor_id || !p_evu_sif) {
         return res.status(400).json({ error: 'Sva polja su obavezna' });
     }
     if (!Number.isInteger(parseInt(p_kor_id))) {
